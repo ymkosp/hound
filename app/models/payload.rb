@@ -35,7 +35,11 @@ class Payload
     data['zen']
   end
 
-  def repository_owner
+  def repository_owner_id
+    repository["owner"]["id"]
+  end
+
+  def repository_owner_name
     repository["owner"]["login"]
   end
 

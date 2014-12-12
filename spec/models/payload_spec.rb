@@ -61,7 +61,7 @@ describe Payload do
     end
   end
 
-  describe "#repository_owner" do
+  describe "#repository_owner_name" do
     it "returns the owner of the repo's name" do
       data = {
         "repository" => {
@@ -73,7 +73,23 @@ describe Payload do
 
       payload = Payload.new(data)
 
-      expect(payload.repository_owner).to eq "thoughtbot"
+      expect(payload.repository_owner_name).to eq "thoughtbot"
+    end
+  end
+
+  describe "#repository_owner_id" do
+    it "returns the owner of the repo's ID" do
+      data = {
+        "repository" => {
+          "owner" => {
+            "id" => 1
+          }
+        }
+      }
+
+      payload = Payload.new(data)
+
+      expect(payload.repository_owner_id).to eq 1
     end
   end
 end

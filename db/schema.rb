@@ -38,9 +38,19 @@ ActiveRecord::Schema.define(version: 20150108003045) do
 
   add_index "memberships", ["repo_id", "user_id"], name: "index_memberships_on_repo_id_and_user_id", using: :btree
 
-  create_table "repos", force: :cascade do |t|
-    t.integer  "github_id",                                    null: false
-    t.boolean  "active",                       default: false, null: false
+  create_table "owners", force: true do |t|
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+    t.integer  "github_id",   null: false
+    t.string   "github_name", null: false
+  end
+
+  add_index "owners", ["github_id"], name: "index_owners_on_github_id", unique: true, using: :btree
+  add_index "owners", ["github_name"], name: "index_owners_on_github_name", unique: true, using: :btree
+
+  create_table "repos", force: true do |t|
+    t.integer  "github_id",                        null: false
+    t.boolean  "active",           default: false, null: false
     t.integer  "hook_id"
     t.string   "full_github_name", limit: 255,                 null: false
     t.datetime "created_at"
