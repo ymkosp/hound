@@ -23,8 +23,16 @@ describe RuboCopMapper do
       hound_rules = {
         line_length: { value: 80 },
         string_literals: { value: "single_quotes" },
-        hash_syntax: { value: "hash_rockets" }, # where did we end on this?
-        ignore_paths: { value: ["vendor/**/*", "lib/assets/**/*"] }
+        hash_syntax: { value: "hash_rockets" },
+        ignore_paths: { value: ["vendor/**/*", "lib/assets/**/*"] },
+        collection_methods: {
+          value: {
+            map: "map",
+            reduce: "reduce",
+            find: "detect",
+            filter: "select"
+          }
+        }
       }
       expected_rubocop_configs = {
         "LineLength" => {
@@ -35,6 +43,15 @@ describe RuboCopMapper do
         },
         "HashSyntax" => {
           "EnforcedStyle" => "hash_rockets"
+        },
+        "CollectionMethods" => {
+          "PreferredMethods" => {
+            collect: "map",
+            collect!: "map!",
+            inject: "reduce",
+            detect: "detect",
+            find_all: "select",
+          }
         },
         "AllCops" => {
           "Exclude" => ["vendor/**/*", "lib/assets/**/*"]
