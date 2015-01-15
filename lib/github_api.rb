@@ -3,7 +3,6 @@ require "base64"
 require "active_support/core_ext/object/with_options"
 
 class GithubApi
-  SERVICES_TEAM_NAME = "Services"
   PREVIEW_MEDIA_TYPE =
     ::Octokit::Client::Organizations::ORG_INVITATIONS_PREVIEW_MEDIA_TYPE
 
@@ -17,16 +16,6 @@ class GithubApi
 
   def repos
     user_repos + org_repos
-  end
-
-  def add_user_to_repo(username, repo_name)
-    repo = repo(repo_name)
-
-    if repo.organization
-      add_user_to_org(username, repo)
-    else
-      client.add_collaborator(repo.full_name, username)
-    end
   end
 
   def repo(repo_name)
@@ -90,10 +79,6 @@ class GithubApi
     client.contents(full_repo_name, path: filename, ref: sha)
   end
 
-  def user_teams
-    client.user_teams
-  end
-
   def accept_pending_invitations
     with_preview_client do |preview_client|
       pending_memberships =
@@ -125,68 +110,46 @@ class GithubApi
     )
   end
 
-  private
-
-  def add_user_to_org(username, repo)
-    repo_teams = client.repository_teams(repo.full_name)
-    admin_team = admin_access_team(repo_teams)
-
-    if admin_team
-      add_user_to_team(username, admin_team.id)
-    else
-      add_user_and_repo_to_services_team(username, repo)
-    end
+  def add_collaborator(repo_name, username)
+    client.add_collaborator(repo_name, username)
   end
 
-  def admin_access_team(repo_teams)
-    token_bearer = GithubUser.new(self)
-
-    repo_teams.detect do |repo_team|
-      token_bearer.has_admin_access_through_team?(repo_team.id)
-    end
+  def user_teams
+    client.user_teams
   end
 
-  def add_user_and_repo_to_services_team(username, repo)
-    team = find_team(SERVICES_TEAM_NAME, repo)
+  def repo_teams(repo_name)
+    client.repository_teams(repo_name)
+  end
 
-    if team
-      ensure_push_permission(team)
-      client.add_team_repository(team.id, repo.full_name)
-    else
-      team = create_team(SERVICES_TEAM_NAME, repo)
-    end
+  def org_teams(org_name)
+    client.org_teams(org_name)
+  end
 
-    add_user_to_team(username, team.id)
+  def create_team(team_name:, org_name:, repo_name:)
+    team_options = {
+      name: team_name,
+      repo_names: [repo_name],
+      permission: "push"
+    }
+    client.create_team(org_name, team_options)
+  end
+
+  def add_repo_to_team(team_id, repo_name)
+    client.add_team_repository(team_id, repo_name)
   end
 
   def add_user_to_team(username, team_id)
     with_preview_client do |preview_client|
       preview_client.add_team_membership(team_id, username)
     end
-  rescue Octokit::NotFound
-    false
   end
 
-  def ensure_push_permission(team)
-    if team[:permission] == "pull"
-      client.update_team(team.id, permission: "push")
-    end
+  def update_team(team_id, options)
+    client.update_team(team_id, options)
   end
 
-  def find_team(name, repo)
-    client.org_teams(repo.organization.login).detect do |team|
-      team.name.downcase == name.downcase
-    end
-  end
-
-  def create_team(name, repo)
-    team_options = {
-      name: name,
-      repo_names: [repo.full_name],
-      permission: "push"
-    }
-    client.create_team(repo.organization.login, team_options)
-  end
+  private
 
   def user_repos
     authorized_repos(client.repos)
