@@ -5,79 +5,75 @@ require "app/models/github_user"
 describe AddHoundToRepo do
   describe "#run" do
     context "with org repo" do
-      context "when repo is part of a team" do
-        context "when request succeeds" do
-          it "adds Hound user to first repo team with admin access" do
-            github_team_id = 1001
-            github = build_github(github_team_id: github_team_id)
+      context "when Services team does not exist" do
+        context "when repo is part of a team" do
+          it "adds hound to new Services team" do
+            github = build_github
+
+            services_team_id = 1001
+            services_team = double("GithubTeam", id: services_team_id)
+            allow(github).to receive(:create_team).and_return(services_team)
+
             allow(github).to receive(:add_user_to_team).and_return(true)
 
-            result = AddHoundToRepo.run("foo/bar", github)
+            AddHoundToRepo.run(github.repo.name, github)
 
-            expect(result).to eq true
+            expect(github).to have_received(:create_team).with(
+              org_name: github.repo.organization.login,
+              team_name: AddHoundToRepo::SERVICES_TEAM_NAME,
+              repo_name: github.repo.name
+            )
             expect(github).to have_received(:add_user_to_team).
-              with(hound, github_team_id)
+              with(hound, services_team_id)
           end
         end
 
-        context "when request fails" do
-          it "returns false" do
-            github = build_github
-            allow(github).to receive(:add_user_to_team).and_return(false)
+        context "when repo is not part of a team" do
+          it "adds hound to new Services team" do
+            github = build_github(user_teams: [], repo_teams: [])
 
-            result = AddHoundToRepo.run("foo/bar", github)
+            services_team_id = 1001
+            services_team = double("GithubTeam", id: services_team_id)
+            allow(github).to receive(:create_team).and_return(services_team)
 
-            expect(result).to eq false
+            allow(github).to receive(:add_user_to_team)
+
+            AddHoundToRepo.run(github.repo.name, github)
+
+            expect(github).to have_received(:create_team).with(
+              org_name: github.repo.organization.login,
+              team_name: AddHoundToRepo::SERVICES_TEAM_NAME,
+              repo_name: github.repo.name
+            )
+            expect(github).to have_received(:add_user_to_team).
+              with(hound, services_team_id)
           end
         end
       end
 
-      context "when repo is not part of a team" do
-        context "when Services team does not exist" do
-          it "adds hound to new Services team" do
-            repo_name = "foo/bar"
-            github_team = double("GithubTeam", id: 1001)
-            github = build_github
-            allow(github).to receive(:user_teams).and_return([])
-            allow(github).to receive(:org_teams).and_return([])
-            allow(github).to receive(:add_user_to_team)
-            allow(github).to receive(:create_team).and_return(github_team)
+      context "when Services team does exist" do
+        xcontext "when repo is part of a team" do
 
-            AddHoundToRepo.run(repo_name, github)
-
-            expect(github).to have_received(:create_team).with(
-              org_name: "foo",
-              team_name: AddHoundToRepo::SERVICES_TEAM_NAME,
-              repo_name: repo_name
-            )
-            expect(github).to have_received(:add_user_to_team).
-              with(hound, github_team.id)
-          end
         end
 
-        context "when Services team exists" do
+        context "when repo is not part of a team" do
           it "adds user to existing Services team" do
-            github_team_id = 1001
-            github = build_github(github_team_id: github_team_id)
-            allow(github).to receive(:add_user_to_team)
+            services_team_id = 1001
+            services_team = build_team(
+              id: services_team_id,
+              name: AddHoundToRepo::SERVICES_TEAM_NAME,
+              permission: "push"
+            )
 
-            AddHoundToRepo.run("foo/bar", github)
+            github = build_github(user_teams: [], repo_teams: [], org_teams: [services_team])
+
+            allow(github).to receive(:add_user_to_team)
+            allow(github).to receive(:add_repo_to_team)
+
+            AddHoundToRepo.run(github.repo.name, github)
 
             expect(github).to have_received(:add_user_to_team).
-              with(hound, github_team_id)
-          end
-
-          context "when team name is lowercase" do
-            it "adds user to the team" do
-              github_team_id = 1001
-              github = build_github(github_team_id: github_team_id)
-              allow(github).to receive(:add_user_to_team)
-
-              AddHoundToRepo.run("foo/bar", github)
-
-              expect(github).to have_received(:add_user_to_team).
-                with(hound, github_team_id)
-            end
+              with(hound, services_team_id)
           end
         end
       end
@@ -86,10 +82,8 @@ describe AddHoundToRepo do
         it "updates permissions to push access" do
           github_team =
             double("RepoTeams", id: 222, name: "Services", permission: "pull")
-          github = build_github
+          github = build_github(user_teams: [], org_teams: [github_team])
           allow(github).to receive(:add_user_to_team)
-          allow(github).to receive(:user_teams).and_return([])
-          allow(github).to receive(:org_teams).and_return([github_team])
           allow(github).to receive(:update_team)
           allow(github).to receive(:add_repo_to_team)
 
@@ -115,14 +109,21 @@ describe AddHoundToRepo do
     end
   end
 
-  def build_github(github_team_id: 10)
-    github_team = double("GithubTeam", id: github_team_id, permission: "admin")
-    github_repo = double("GithubRepo", organization: double(login: "foo"))
+  def build_team(args = { id: 10, permission: "admin" })
+    double("GithubTeam", args)
+  end
+
+  def build_repo
+    double("GithubRepo", name: "foo/bar", organization: double("Organization", login: "foo"))
+  end
+
+  def build_github(user_teams: [build_team], repo_teams: [build_team], org_teams:[])
     double(
       "GithubApi",
-      repo: github_repo,
-      user_teams: [github_team],
-      repo_teams: [github_team],
+      repo: build_repo,
+      org_teams: org_teams,
+      repo_teams: repo_teams,
+      user_teams: user_teams
     )
   end
 
