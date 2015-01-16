@@ -65,6 +65,7 @@ class AddHoundToRepo
   end
 
   def find_services_team
+debugger
     github.org_teams(org_name).detect do |team|
       team.name.downcase == SERVICES_TEAM_NAME.downcase
     end

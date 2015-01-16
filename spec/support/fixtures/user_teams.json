@@ -40,5 +40,19 @@
       "url": "https://api.github.com/orgs/thoughtbot",
       "avatar_url": "https://github.com/images/error/octocat_happy.gif"
     }
+  },
+  {
+    "url": "https://api.github.com/teams/9999",
+    "name": "Services",
+    "id": 9999,
+    "permission": "push",
+    "members_count": 3,
+    "repos_count": 10,
+    "organization": {
+      "login": "thoughtbot",
+      "id": 1,
+      "url": "https://api.github.com/orgs/thoughtbot",
+      "avatar_url": "https://github.com/images/error/octocat_happy.gif"
+    }
   }
 ]

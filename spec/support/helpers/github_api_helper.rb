@@ -75,6 +75,19 @@ module GithubApiHelper
     )
   end
 
+  def stub_org_teams_request(org_name, user_github_token)
+    stub_request(
+      :get,
+      "https://api.github.com/orgs/#{org_name}/teams?per_page=100"
+    ).with(
+      headers: { "Authorization" => "token #{user_github_token}" }
+    ).to_return(
+      status: 200,
+      body: File.read("spec/support/fixtures/org_teams_with_services_team.json"),
+      headers: { 'Content-Type' => 'application/json; charset=utf-8' }
+    )
+  end
+
   def stub_repo_teams_request(repo_name, user_github_token)
     stub_request(
       :get,

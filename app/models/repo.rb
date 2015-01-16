@@ -38,6 +38,7 @@ class Repo < ActiveRecord::Base
   end
 
   def activate
+    debugger
     update(active: true)
   end
 

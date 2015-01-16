@@ -81,19 +81,26 @@ feature "Repo list", js: true do
     repo = create(:repo, private: false, full_github_name: "testing/repo")
     repo.users << user
     hook_url = "http://#{ENV["HOST"]}/builds"
-    team_id = 4567 # from fixture
+    services_team_id = 9999 # from fixture
     hound_user = "houndci"
     token = "usergithubtoken"
     stub_repo_with_org_request(repo.full_github_name, token)
     stub_hook_creation_request(repo.full_github_name, hook_url, token)
     stub_repo_teams_request(repo.full_github_name, token)
     stub_user_teams_request(token)
-    stub_add_user_to_team_request(hound_user, team_id, token)
+    stub_org_teams_request("testing", token)
+    stub_add_user_to_team_request(hound_user, services_team_id, token)
+
+    stub_add_repo_to_team_request(repo.full_github_name, services_team_id, token)
+    # services team
+
     stub_memberships_request
     stub_membership_update_request
 
     sign_in_as(user, token)
     find(".repos .toggle").click
+
+    #debugger
 
     expect(page).to have_css(".active")
     expect(page).to have_content "1 OF 1"
