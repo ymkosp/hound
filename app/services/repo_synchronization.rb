@@ -16,7 +16,7 @@ class RepoSynchronization
   private
 
   def user_repos
-    @user_repos ||= user.repos
+    user.repos
   end
 
   def deactivate_repos
@@ -30,6 +30,9 @@ class RepoSynchronization
   def deactivate_repo(repo)
     repo.deactivate
     repo.memberships.destroy_all
+    if repo.subscription
+      RepoSubscriber.unsubscribe(repo, user)
+    end
   end
 
   def api_repos

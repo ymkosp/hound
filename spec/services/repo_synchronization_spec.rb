@@ -128,9 +128,24 @@ describe RepoSynchronization do
         synchronization = RepoSynchronization.new(membership.user, github_token)
 
         synchronization.start
-        repo.reload
 
         expect(user.memberships).to be_empty
+      end
+
+      it "unsubscribes the user when a repo gets deactivated" do
+        repo = create(:repo, :active)
+        subscription = create(:subscription, repo: repo)
+        user = subscription.user
+        repo.memberships.destroy_all
+        create(:membership, repo: repo, user: user)
+        github_token = "githubtoken"
+        stub_api_repos(repos: [])
+        allow(RepoSubscriber).to receive(:unsubscribe)
+        synchronization = RepoSynchronization.new(user, github_token)
+
+        synchronization.start
+
+        expect(RepoSubscriber).to have_received(:unsubscribe).with(repo, user)
       end
     end
   end
