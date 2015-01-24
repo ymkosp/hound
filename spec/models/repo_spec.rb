@@ -1,6 +1,7 @@
 require "spec_helper"
 
 describe Repo do
+  it { should belong_to :owner }
   it { should have_many(:users).through(:memberships) }
   it { should have_many :builds }
   it { should validate_presence_of :full_github_name }

@@ -4,10 +4,6 @@ class RepoSynchronization
   pattr_initialize :user, :github_token
   attr_reader :user
 
-  def api
-    @api ||= GithubApi.new(github_token)
-  end
-
   def start
     user.repos.clear
 
@@ -19,12 +15,24 @@ class RepoSynchronization
 
   private
 
+  def api
+    @api ||= GithubApi.new(github_token)
+  end
+
   def repo_attributes(attributes)
     {
       private: attributes[:private],
       github_id: attributes[:id],
       full_github_name: attributes[:full_name],
-      in_organization: attributes[:owner][:type] == ORGANIZATION_TYPE
+      in_organization: attributes[:owner][:type] == ORGANIZATION_TYPE,
+      owner: upsert_owner(attributes[:owner])
     }
+  end
+
+  def upsert_owner(owner_attributes)
+    Owner.upsert(
+      github_id: owner_attributes[:id],
+      github_name: owner_attributes[:login]
+    )
   end
 end

@@ -8,15 +8,14 @@ describe RepoSynchronization do
         id: 456,
         private: true,
         owner: {
-          type: 'User'
+          type: 'User',
+          id: 1,
+          login: 'thoughtbot'
         }
       }
-      resource = double(:resource, to_hash: attributes)
-      api = double(:github_api, repos: [resource])
-      allow(GithubApi).to receive(:new).and_return(api)
+      stub_github_api_repos(attributes)
       user = create(:user)
-      github_token = 'token'
-      synchronization = RepoSynchronization.new(user, github_token)
+      synchronization = RepoSynchronization.new(user, 'githubtoken')
 
       synchronization.start
 
@@ -29,15 +28,14 @@ describe RepoSynchronization do
         id: 456,
         private: false,
         owner: {
-          type: 'Organization'
+          type: 'Organization',
+          id: 1,
+          login: 'thoughtbot'
         }
       }
-      resource = double(:resource, to_hash: attributes)
-      api = double(:github_api, repos: [resource])
-      allow(GithubApi).to receive(:new).and_return(api)
+      stub_github_api_repos(attributes)
       user = create(:user)
-      github_token = 'token'
-      synchronization = RepoSynchronization.new(user, github_token)
+      synchronization = RepoSynchronization.new(user, 'githubtoken')
 
       synchronization.start
 
@@ -50,20 +48,18 @@ describe RepoSynchronization do
         id: 456,
         private: false,
         owner: {
-          type: 'User'
+          type: 'User',
+          id: 1,
+          login: 'thoughtbot'
         }
       }
-      resource = double(:resource, to_hash: attributes)
-      github_token = 'token'
+      stub_github_api_repos(attributes)
       membership = create(:membership)
       user = membership.user
-      api = double(:github_api, repos: [resource])
-      allow(GithubApi).to receive(:new).and_return(api)
-      synchronization = RepoSynchronization.new(user, github_token)
+      synchronization = RepoSynchronization.new(user, 'githubtoken')
 
       synchronization.start
 
-      expect(GithubApi).to have_received(:new).with(github_token)
       expect(user.repos.size).to eq(1)
       expect(user.repos.first.full_github_name).to eq 'user/newrepo'
       expect(user.repos.first.github_id).to eq 456
@@ -77,15 +73,13 @@ describe RepoSynchronization do
         id: membership.repo.github_id,
         private: true,
         owner: {
-          type: 'User'
+          type: 'User',
+          id: 1,
+          login: 'thoughtbot'
         }
       }
-      resource = double(:resource, to_hash: attributes)
-      github_token = 'githubtoken'
-
-      api = double(:github_api, repos: [resource])
-      allow(GithubApi).to receive(:new).and_return(api)
-      synchronization = RepoSynchronization.new(membership.user, github_token)
+      stub_github_api_repos(attributes)
+      synchronization = RepoSynchronization.new(membership.user, 'githubtoken')
 
       synchronization.start
 
@@ -103,20 +97,79 @@ describe RepoSynchronization do
           id: repo.github_id,
           private: true,
           owner: {
-            type: 'User'
+            type: 'User',
+            id: 1,
+            login: 'thoughtbot'
           }
         }
-        resource = double(:resource, to_hash: attributes)
-        github_token = 'githubtoken'
+        stub_github_api_repos(attributes)
         second_user = create(:user)
-        api = double(:github_api, repos: [resource])
-        allow(GithubApi).to receive(:new).and_return(api)
-        synchronization = RepoSynchronization.new(second_user, github_token)
+        synchronization = RepoSynchronization.new(second_user, 'githubtoken')
 
         synchronization.start
 
         expect(second_user.reload.repos.size).to eq(1)
       end
+    end
+
+    describe "repo owners" do
+      context "when the owner doesn't exit" do
+        it "creates and associates an owner to the repo" do
+          user = create(:user)
+          owner_github_id = 1234
+          owner_name = 'thoughtbot'
+          repo_github_id = 321
+          attributes = {
+            full_name: 'thoughtbot/newrepo',
+            id: repo_github_id,
+            private: true,
+            owner: {
+              type: 'Organization',
+              id: owner_github_id,
+              login: owner_name
+            }
+          }
+          stub_github_api_repos(attributes)
+          synchronization = RepoSynchronization.new(user, 'githubtoken')
+
+          synchronization.start
+
+          owner = Owner.find_by(github_id: owner_github_id)
+          expect(owner.github_name).to eq(owner_name)
+          expect(owner.repos.map(&:github_id)).to include(repo_github_id)
+        end
+      end
+
+      context "when the owner exists" do
+        it "updates and associates an owner to the repo" do
+          owner = create(:owner)
+          user = create(:user)
+          repo_github_id = 321
+          attributes = {
+            full_name: 'thoughtbot/newrepo',
+            id: repo_github_id,
+            private: true,
+            owner: {
+              type: 'Organization',
+              id: owner.github_id,
+              login: owner.github_name
+            }
+          }
+          stub_github_api_repos(attributes)
+          synchronization = RepoSynchronization.new(user, 'githubtoken')
+
+          synchronization.start
+
+          owner = Owner.find_by(github_id: owner.github_id)
+          expect(owner.repos.map(&:github_id)).to include(repo_github_id)
+        end
+      end
+    end
+
+    def stub_github_api_repos(attributes)
+      resource = double(:resource, to_hash: attributes)
+      api = double(:github_api, repos: [resource])
+      allow(GithubApi).to receive(:new).and_return(api)
     end
   end
 end

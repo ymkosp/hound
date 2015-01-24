@@ -1,8 +1,8 @@
 class Repo < ActiveRecord::Base
+  belongs_to :owner
   has_many :memberships
   has_many :users, through: :memberships
   has_many :builds
-
   has_one :subscription
 
   alias_attribute :name, :full_github_name
