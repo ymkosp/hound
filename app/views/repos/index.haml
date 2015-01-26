@@ -3,5 +3,7 @@
 = render 'shared/header'
 = render 'settings'
 
-.repo-listing{ 'repo-list' => '' }
-= render 'preload_template', template: 'repo_list'
+.dashboard
+  %aside
+  %section.repo-listing{ 'repo-list' => '' }
+    = render 'preload_template', template: 'repo_list'
