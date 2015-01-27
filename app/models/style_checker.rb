@@ -24,6 +24,8 @@ class StyleChecker
   def files_to_check
     pull_request.pull_request_files.reject(&:removed?).select do |file|
       file_style_guide = style_guide(file.filename)
+      # Checks if style guide is enabled
+      # remove line?
       file_style_guide.enabled? && file_style_guide.file_included?(file)
     end
   end

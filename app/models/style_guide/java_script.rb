@@ -3,6 +3,12 @@ module StyleGuide
     CUSTOM_CONFIG_FILE = ".javascript-style.json"
 
     def violations_in_file(file)
+      # if exclude?(file)
+      #   []
+      # else
+      #   ...
+      # end
+
       Jshintrb.lint(file.content, config).compact.map do |violation|
         line = file.line_at(violation["line"])
 

@@ -12,6 +12,8 @@ class RepoConfig
   pattr_initialize :commit
 
   def enabled_for?(style_guide_name)
+    # Don't enable Ruby by default
+    # check if config file exists in order to enable language
     style_guide_name == "ruby" && legacy_config? ||
       enabled_in_config?(style_guide_name)
   end
@@ -30,6 +32,7 @@ class RepoConfig
     end
   end
 
+  # wat, why here?
   def ignored_javascript_files
     ignore_file_content = load_javascript_ignore
 
