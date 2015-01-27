@@ -5,14 +5,12 @@ feature "Landing page split testing" do
     visit landing_page(:original)
 
     expect(page).to have_content(original_landing_page_content)
-    # expect(segment).to have_received(landing_analytics_event(:original))
   end
 
-  scenario "user sees a new landing page" do
-    visit landing_page(:new)
+  scenario "user sees an alternate landing page" do
+    visit landing_page(:benefits)
 
-    expect(page).to have_content(new_landing_page_content)
-    # expect(segment).to have_received(landing_analytics_event(:new))
+    expect(page).to have_content(alternate_landing_page_content)
   end
 
   def landing_page(alternative)
@@ -23,7 +21,7 @@ feature "Landing page split testing" do
     "Review your JavaScript, CoffeeScript, and Ruby code for style guide violations with a trusty hound."
   end
 
-  def new_landing_page_content
-    "Hound catches style violations before they get merged"
+  def alternate_landing_page_content
+    "Keep your code clean with automated style checking"
   end
 end

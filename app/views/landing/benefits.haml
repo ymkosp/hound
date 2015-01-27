@@ -1,0 +1,57 @@
+- content_for :page_title, "Hound"
+- content_for :body_class, "landing benefits"
+- content_for :variation, "benefits"
+
+.hero
+  = image_tag('landing/HoundLogo.svg', class: 'logo')
+  %h2
+    Keep your code clean with automated style checking
+  = link_to '/auth/github', class: 'auth button' do
+    %i.fa.fa-github
+    %span= t('authenticate')
+
+%ul.supported-languages
+  %li
+    = image_tag('languages/ruby.png')
+    %span Ruby
+  %li
+    = image_tag('languages/javascript.png')
+    %span JavaScript
+  %li
+    = image_tag('languages/sass.png')
+    %span Scss
+
+.use-cases
+  .use-case
+    %h3 Keep your codebases consistent
+    %p
+      Code inconsistency is a huge source of technical debt as projects scale.
+      Avoid delays by catching and fixing style violations
+      before they get merged.
+  .use-case
+    %h3 Stop wasting time nitpicking
+    %p
+      When developers have to worry about low-level style violations,
+      they can miss bigger problems like security vulnerabilities or
+      performance problems.
+  .use-case
+    %h3 Simplify developer onboarding
+    %p
+      Automated code review is faster and less awkward
+      than peer-to-peer feedback,
+      and helps new devs learn the ropes faster.
+  .use-case
+    %h3 Bring your code up to industry standards
+    %p
+      Hound starts you off with styleguides
+      used by top companies in the industry.
+      If you work differently, no problem!
+      It's easy to train Hound to work with your team's style.
+
+%h2 The best in the business rely on Hound every day
+%ul.used-by
+  %li= image_tag('customers/thoughtbot.svg')
+  %li= image_tag('customers/thoughtbot.svg')
+  %li= image_tag('customers/thoughtbot.svg')
+
+= render 'shared/footer'
