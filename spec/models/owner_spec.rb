@@ -20,7 +20,10 @@ describe Owner do
         owner = create(:owner)
         new_github_name = "ralphbot"
 
-        updated_owner = Owner.upsert(github_id: owner.github_id, github_name: new_github_name)
+        updated_owner = Owner.upsert(
+          github_id: owner.github_id,
+          github_name: new_github_name
+        )
 
         expect(updated_owner.github_name).to eq new_github_name
       end

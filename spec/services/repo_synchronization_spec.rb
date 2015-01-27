@@ -8,34 +8,34 @@ describe RepoSynchronization do
         id: 456,
         private: true,
         owner: {
-          type: 'User',
+          type: "User",
           id: 1,
-          login: 'thoughtbot'
+          login: "thoughtbot"
         }
       }
       stub_github_api_repos(attributes)
       user = create(:user)
-      synchronization = RepoSynchronization.new(user, 'githubtoken')
+      synchronization = RepoSynchronization.new(user, "githubtoken")
 
       synchronization.start
 
       expect(user.repos.first).to be_private
     end
 
-    it 'saves organization flag' do
+    it "saves organization flag" do
       attributes = {
-        full_name: 'user/newrepo',
+        full_name: "user/newrepo",
         id: 456,
         private: false,
         owner: {
-          type: 'Organization',
+          type: "Organization",
           id: 1,
-          login: 'thoughtbot'
+          login: "thoughtbot"
         }
       }
       stub_github_api_repos(attributes)
       user = create(:user)
-      synchronization = RepoSynchronization.new(user, 'githubtoken')
+      synchronization = RepoSynchronization.new(user, "githubtoken")
 
       synchronization.start
 
