@@ -7,7 +7,7 @@ header.global {
     border: none;
     display: block;
     float: left;
-    margin-right: 1em;
+    margin-right: 2em;
     padding: 0;
 
     &:hover {
@@ -16,8 +16,9 @@ header.global {
 
     h1 {
       @include hide-text;
-      @include size(50px);
       background: image_url("icon.svg") no-repeat center center;
+      height: 50px;
+      width: 51px;
       margin: 0;
     }
   }
