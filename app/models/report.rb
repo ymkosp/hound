@@ -57,19 +57,15 @@ class Report
     end
   end
 
-  def self.generate_report(name)
-    format name do
-      weeks.each do |week|
-        sql = yield(week)
-        results = Repo.connection.execute(sql).first
-        puts "#{week}: #{results["count"]}"
-      end
-    end
-  end
+  def self.generate_report(title)
+    puts "#{title}:"
 
-  def self.format(report_title)
-    puts "#{report_title}:"
-    yield
+    weeks.each do |week|
+      sql = yield week
+      results = Repo.connection.execute(sql).first
+      puts "#{week}: #{results["count"]}"
+    end
+
     puts "\n\n"
   end
 
